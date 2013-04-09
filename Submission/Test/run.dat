@@ -1,0 +1,37 @@
+
+  Starting Http Processing Test
+ ===============================
+  starting http listener
+
+  got a connection
+  starting HttpProcessing thread
+  got a connection
+  Received empty message
+  starting HttpProcessing thread
+  HttpProcessor thread terminating
+
+  received message:
+-------------------------
+GET /foobar HTTP/1.1
+Accept: text/html, application/xhtml+xml, */*
+Accept-Language: en-US
+User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)
+Accept-Encoding: gzip, deflate
+Host: localhost:8080
+Connection: Keep-Alive
+
+-------------------------
+
+  ResourceName: <h1>foobar</h1>
+  size: 15
+
+  sending message:
+-------------------------
+HTTP/1.0 200 OK
+Content-Type : text/html
+Content-Length : 15
+
+<h1>foobar</h1>
+-------------------------
+
+  HttpProcessor thread terminating
