@@ -4,12 +4,18 @@
 #include "filefind.h"
 #include "FileSystem.h"
 #include "base64.h"
+#include "md5.h"
 
 using namespace FileSystem;
 
 std::string Packetizer::getFileName()
 {
 	return fileName;
+}
+
+size_t Packetizer::getUncompressedSizeInBytes()
+{
+	return uncompressedSizeInBytes;
 }
 
 Packetizer::Packetizer(std::string Path)
@@ -23,6 +29,10 @@ Packetizer::Packetizer(std::string Path)
 	FileInfo inFile_fi(Path);
 
 	size_t fileSize = inFile_fi.size();
+	uncompressedSizeInBytes = fileSize;
+
+	std::cout << "File size in bytes: " << uncompressedSizeInBytes << "\n";
+
 	size_t packetCount = fileSize / CHUNK_SIZE;
 	if (fileSize % CHUNK_SIZE > 0)
 		packetCount++;
@@ -38,17 +48,21 @@ Packetizer::Packetizer(std::string Path)
 	else
 	{
 		Block b;
+		std::string fileContents;
+
 		while(inFile.isGood())
 		{			
 			b = inFile.getBlock(CHUNK_SIZE);
 			std::string packet;
 
-			for (int i=0;i<b.size();i++)
+			for (size_t i=0;i<b.size();i++)
 				packet.push_back(b[i]);
+
+			fileContents += packet;
 
 			Packetizer::PacketList.push_back(base64::base64_encode(reinterpret_cast<const unsigned char*>(packet.c_str()), packet.length()));
 		}
-		std::cout << "Done packetizing.  Made " << PacketList.size() << " packets\n";
+		std::cout << "Done packetizing.  Made " << PacketList.size() << " packets, MD5: " << md5(fileContents.c_str()) << "\n";
 	}
 }
 

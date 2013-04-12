@@ -6,14 +6,22 @@
 #include "filefind.h"
 #include "FileSystem.h"
 
+std::string ToString(int i)
+{
+	std::ostringstream conv;
+	conv << i;
+	return conv.str();
+}
+
 
 //----< demo thread constructor >------------------------------
 
-SenderThread::SenderThread(BlockingQueue<std::string>& q, Socket sock, Packetizer& p) : _q(q), _s(sock), _p(p) {}
+//SenderThread::SenderThread(BlockingQueue<std::string>& q, Socket sock, Packetizer& p) : _q(q), _s(sock), _p(p) {}
+SenderThread::SenderThread(BlockingQueue<std::string>& q, Socket sock) : _q(q), _s(sock) {}
 
 //----< getState returns thread health >-----------------------
 
-HealthType SenderThread::getHealth()
+HealthType_e SenderThread::getHealth()
 {
 	return _health; 
 }
@@ -45,15 +53,10 @@ void SenderThread::run()
 	_s.disconnect();
 }
 
-
-Talker::Talker(Packetizer& p) : _p(p) { }
-
-
-
-void Talker::start(std::string ip, int port)
+void TextTalker::start(messageType_e msgType, std::string ip, int port, std::string payload, std::string listenIp, int listenPort)
 {
 	sout << locker << "\n Sender #" << id() << " started" << unlocker;
-	pSender = new SenderThread(_q, _s, _p);
+	pSender = new SenderThread(_q, _s);
 	pSender->start();
 
 	if(!_s.connect(ip, port))
@@ -67,10 +70,83 @@ void Talker::start(std::string ip, int port)
 		std::string logMsg = "\n  connected to " + ip + ":" + ToString(port);
 		doLog(logMsg.c_str());
 	}
-	doLog("starting Talker");
+	doLog("starting TextTalker");
+
+	
+	if (msgType == queryMd5)
+		_q.enQ(makeQueryMd5AckMessage(payload, listenIp, listenPort ));
+
+	if (msgType == ackMd5)
+		_q.enQ(makeMd5AckMessage(payload, listenIp, listenPort ));
+
+
+	_q.enQ("stop");
+	
+	pSender->join();
+	delete pSender;
+}
+
+std::string TextTalker::makeQueryMd5AckMessage(std::string filename, std::string ipSender, int portSender)
+{
+	std::string header;
+
+	header = "[queryMd5;";
+	header+="file='" + filename + "'";
+	header+="ipSender='" + ipSender + "'";
+	header+="portSender='" + ToString(portSender) + "'";
+	header+= "]";
+
+	return header;
+}
+
+std::string TextTalker::makeMd5AckMessage(std::string md5val, std::string ipSender, int portSender)
+{
+	std::string header;
+
+	header = "[ackMd5;";
+	header+="ipSender='" + ipSender + "'";
+	header+="portSender='" + ToString(portSender) + "'";
+	header+="md5val='" + md5val + "'";
+	header+= "]";
+
+	return header;
+}
+
+
+int TextTalker::id() { return myCount; }
+
+int TextTalker::count = 0;
+
+
+TextTalker::TextTalker() {}
+
+
+BinTalker::BinTalker(Packetizer& p) : _p(p) {}
+
+
+
+
+void BinTalker::start(std::string ip, int port)
+{
+	sout << locker << "\n Sender #" << id() << " started" << unlocker;
+	pSender = new SenderThread(_q, _s);
+	pSender->start();
+
+	if(!_s.connect(ip, port))
+	{
+		sout << locker << "\n  couldn't connect to " << ip << ":" << port << "\n\n" << unlocker;
+		delete pSender;
+		return;
+	}
+	else
+	{
+		std::string logMsg = "\n  connected to " + ip + ":" + ToString(port);
+		doLog(logMsg.c_str());
+	}
+	doLog("starting BinTalker");
 
 	std::string msg;
-	for(int i=0; i<_p.size(); ++i)
+	for(size_t i=0; i<_p.size(); ++i)
 	{
 		doLog("sending message");		
 		_q.enQ(appendHeaderToBinaryPacket(ip, port, i) + _p[i]);
@@ -85,12 +161,16 @@ void Talker::start(std::string ip, int port)
 	delete pSender;
 }
 
-
-std::string Talker::appendHeaderToBinaryPacket(std::string destIp, int destPort, int packetIndex)
+std::string BinTalker::makeSendBinAckMessage(std::string filename, std::string ipSender)
 {
 	std::string header;
+	return header;
+}
 
 
+std::string BinTalker::appendHeaderToBinaryPacket(std::string destIp, int destPort, int packetIndex)
+{
+	std::string header;
 	header = "[sendBin;";
 	header+="file='" + _p.getFileName() + "'";
 	header+="pCount='" + ToString(_p.size()) + "'";
@@ -98,26 +178,25 @@ std::string Talker::appendHeaderToBinaryPacket(std::string destIp, int destPort,
 	header+="dIp='" + destIp + "'";
 	header+="dPort='" + ToString(destPort) + "'";
 	header+= "]";
-
 	return header;
 }
 
-int Talker::id() { return myCount; }
+int BinTalker::id() { return myCount; }
 
-int Talker::count = 0;
+int BinTalker::count = 0;
 
 #ifdef TEST_SENDER
 
 class DemoThread : public threadBase
 {
 public:
-	DemoThread(Talker sndr) : sndr_(sndr) {}
+	DemoThread(BinTalker sndr) : sndr_(sndr) {}
 private:
 	void run()
 	{
 		sndr_.start("127.0.0.1", 8080);
 	}
-	Talker sndr_;
+	BinTalker sndr_;
 };
 
 
@@ -132,8 +211,8 @@ void main()
 		Packetizer p2("C:\\School\\CSE-687\\Project3\\Submission\\Test\\flyby_plusShaped2.scn");
 
 		// run two senders concurrently
-		Talker sndr1(p);
-		Talker sndr2(p2);
+		BinTalker sndr1(p);
+		BinTalker sndr2(p2);
 		DemoThread t1(sndr1);
 		DemoThread t2(sndr2);
 		t1.start();

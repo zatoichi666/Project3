@@ -397,6 +397,7 @@ bool FileInfo::isSystem() const
 {
 	return (data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM  ) != 0;
 }
+
 //----< is type temporary? >-------------------------------------------
 
 bool FileInfo::isTemporary() const

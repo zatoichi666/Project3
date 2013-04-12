@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6EF92821-9E8B-4542-9533-E4FFE5E10D21}</ProjectGuid>
-    <RootNamespace>Listener</RootNamespace>
+    <ProjectGuid>{6FD50D24-9792-47E5-A7DB-7DAD71235894}</ProjectGuid>
+    <RootNamespace>md5</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -43,12 +43,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_MBCS;TEST_LISTENER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;TEST_MD5;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -65,22 +64,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\BlockingQueue.cpp" />
-    <ClCompile Include="..\FileSystem.cpp" />
-    <ClCompile Include="..\Listener.cpp" />
-    <ClCompile Include="..\Locks.cpp" />
     <ClCompile Include="..\md5.cpp" />
-    <ClCompile Include="..\Sockets.cpp" />
-    <ClCompile Include="..\Threads.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\BlockingQueue.h" />
-    <ClInclude Include="..\FileSystem.h" />
-    <ClInclude Include="..\Listener.h" />
-    <ClInclude Include="..\Locks.h" />
     <ClInclude Include="..\md5.h" />
-    <ClInclude Include="..\Sockets.h" />
-    <ClInclude Include="..\Threads.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

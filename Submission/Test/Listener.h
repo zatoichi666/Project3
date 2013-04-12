@@ -7,13 +7,7 @@
 #include "BlockingQueue.h"
 #include "FileSystem.h"
 
-
-std::string ToString(int i)
-{
-  std::ostringstream conv;
-  conv << i;
-  return conv.str();
-}
+//std::string ToString(int i);
 
 ///////////////////////////////////////////////////////////////
 // ReceverThread derived class
@@ -70,6 +64,9 @@ private:
 	BlockingQueue<std::string> q_;
 	ListenThread* pLt;
 	void processMessage(std::string message);
+	void Receiver::processQueryMd5Msg(std::string message );
+	void Receiver::processAckMd5Msg(std::string message );
+	FileSystem::FileInfo Receiver::processSendBinMsg(std::string message, int& isLastPacket);
 	std::vector<FileSystem::File> fileList;
 };
 

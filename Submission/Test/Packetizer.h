@@ -17,12 +17,14 @@ class Packetizer
 private:
 	std::vector<std::string> PacketList;
 	std::string fileName;
+	size_t uncompressedSizeInBytes;
 public:
 	std::string getFileName();
 	std::string operator[](size_t index);
 	Packetizer(std::string Path);
 	void toFile(std::string Path);
 	size_t size();
+	size_t getUncompressedSizeInBytes();
 };
 
 
