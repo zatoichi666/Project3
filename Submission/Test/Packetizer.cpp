@@ -1,5 +1,16 @@
-#include <iostream>
+/////////////////////////////////////////////////////////////////////////////
+// Packetizer.cpp - Streams in files and prepares them in a object for     //
+//                  Socket communication for project 3, CSE-687            //
+//                  Spring 2013                                            //
+// ----------------------------------------------------------------------- //
+// Language:    Visual C++, Visual Studio 2012                             //
+// Platform:    Dell Dimension E6510, Windows 7                            //
+// Application: CSE-687                                                    //
+// Author:      Matt Synborski                                             //
+//              matthewsynborski@gmail.com                                 //
+/////////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
 #include "Packetizer.h"
 #include "filefind.h"
 #include "FileSystem.h"
@@ -20,25 +31,21 @@ size_t Packetizer::getUncompressedSizeInBytes()
 
 Packetizer::Packetizer(std::string Path)
 {
-
-	std::cout << "Packetizing: " << Path << "\n";
-
 	fileName = Path.substr(Path.find_last_of("\\")+1);
-
+	std::cout << " Packetizer: Preparing file " << fileName << " for socket communication";
 	File inFile(Path);
 	FileInfo inFile_fi(Path);
 
 	size_t fileSize = inFile_fi.size();
 	uncompressedSizeInBytes = fileSize;
-
-	std::cout << "File size in bytes: " << uncompressedSizeInBytes << "\n";
+	//std::cout << "File size in bytes: " << uncompressedSizeInBytes << "\n";
 
 	size_t packetCount = fileSize / CHUNK_SIZE;
 	if (fileSize % CHUNK_SIZE > 0)
 		packetCount++;
 
 	inFile.open(File::in, File::binary);
-	std::cout << "\n  copying " << inFile.name().c_str() << " to c:/temp";
+	
 	if(!inFile.isGood())
 	{
 		std::cout << "\n  can't open binary file\n";
@@ -54,15 +61,12 @@ Packetizer::Packetizer(std::string Path)
 		{			
 			b = inFile.getBlock(CHUNK_SIZE);
 			std::string packet;
-
 			for (size_t i=0;i<b.size();i++)
 				packet.push_back(b[i]);
-
 			fileContents += packet;
-
 			Packetizer::PacketList.push_back(base64::base64_encode(reinterpret_cast<const unsigned char*>(packet.c_str()), packet.length()));
 		}
-		std::cout << "Done packetizing.  Made " << PacketList.size() << " packets, MD5: " << md5(fileContents.c_str()) << "\n";
+		std::cout << " MD5: " << md5(fileContents.c_str()) << "\n";
 	}
 }
 
@@ -115,7 +119,7 @@ int main()
 		Packetizer p(vecTxtFilesNonR[i]);
 		std::cout << "In file: " << p.getFileName() << "\n";
 		std::cout << "Packetized "<< p.size() << " packets.\n";
-		p.toFile("C:\\Wondervision2.m4a");
+		p.toFile("depacketized.bin");
 	}
 }
 

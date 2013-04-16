@@ -1,3 +1,14 @@
+/////////////////////////////////////////////////////////////////////////////
+// Sender.cpp -  Demonstrates send-side communication per specification    //
+//               for project 3, CSE-687, Spring 2013                       //
+// ----------------------------------------------------------------------- //
+// Language:    Visual C++, Visual Studio 2012                             //
+// Platform:    Dell Dimension E6510, Windows 7                            //
+// Application: CSE-687                                                    //
+// Author:      Matt Synborski                                             //
+//              matthewsynborski@gmail.com                                 //
+/////////////////////////////////////////////////////////////////////////////
+
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -5,6 +16,7 @@
 #include "Packetizer.h"
 #include "filefind.h"
 #include "FileSystem.h"
+#include "md5.h"
 
 std::string ToString(int i)
 {
@@ -13,26 +25,21 @@ std::string ToString(int i)
 	return conv.str();
 }
 
+//----< Sender thread constructor >------------------------------
 
-//----< demo thread constructor >------------------------------
-
-//SenderThread::SenderThread(BlockingQueue<std::string>& q, Socket sock, Packetizer& p) : _q(q), _s(sock), _p(p) {}
 SenderThread::SenderThread(BlockingQueue<std::string>& q, Socket sock) : _q(q), _s(sock) {}
 
-//----< getState returns thread health >-----------------------
+//----< getHealth returns thread health >-----------------------
 
 HealthType_e SenderThread::getHealth()
 {
 	return _health; 
 }
 
-//----< Thread's implementation routine >----------------------
+//----< Sender Thread's implementation routine >----------------------
 
 void SenderThread::run()
 {
-	sout << "Starting SenderThread\n";
-	doLog("Starting SenderThread");
-
 	_health = healthy;
 	std::string line;
 
@@ -53,9 +60,15 @@ void SenderThread::run()
 	_s.disconnect();
 }
 
+//----< Text-based message sender constructor >------------------------------
+
+TextTalker::TextTalker() {}
+
+//----< Text based-message start handles each type of text message enumerated by Sender.h-> messageType_e >------------------------------
+
 void TextTalker::start(messageType_e msgType, std::string ip, int port, std::string payload, std::string listenIp, int listenPort)
 {
-	sout << locker << "\n Sender #" << id() << " started" << unlocker;
+	sout << locker << " TextTalker: " << id() << " started" << unlocker << "\n";
 	pSender = new SenderThread(_q, _s);
 	pSender->start();
 
@@ -72,19 +85,22 @@ void TextTalker::start(messageType_e msgType, std::string ip, int port, std::str
 	}
 	doLog("starting TextTalker");
 
-	
 	if (msgType == queryMd5)
 		_q.enQ(makeQueryMd5AckMessage(payload, listenIp, listenPort ));
 
 	if (msgType == ackMd5)
 		_q.enQ(makeMd5AckMessage(payload, listenIp, listenPort ));
 
+	if (msgType == ackBin)
+		_q.enQ(makeAckBinMessage(payload, ip, port ));
 
 	_q.enQ("stop");
-	
+
 	pSender->join();
 	delete pSender;
 }
+
+//----< Text-based message for querying a remote file's MD5 signature >----------------------
 
 std::string TextTalker::makeQueryMd5AckMessage(std::string filename, std::string ipSender, int portSender)
 {
@@ -99,6 +115,9 @@ std::string TextTalker::makeQueryMd5AckMessage(std::string filename, std::string
 	return header;
 }
 
+//----------< Text-based message for servicing a query >------------------------------------- 
+//----------< calculates MD5 and sends the result back to the queryer >----------------------
+
 std::string TextTalker::makeMd5AckMessage(std::string md5val, std::string ipSender, int portSender)
 {
 	std::string header;
@@ -112,23 +131,33 @@ std::string TextTalker::makeMd5AckMessage(std::string md5val, std::string ipSend
 	return header;
 }
 
+//----------< Text-based message for confirming receipt of a complete binary file >------------------------------------- 
+//----------< Doesn't calculate MD5, that is a separate optional transaction via queryMD5 >----------------------
+
+std::string TextTalker::makeAckBinMessage(std::string fileName, std::string ipSender, int portSender)
+{
+	std::string header;
+	header = "[ackBin;";
+	header+="file='" + fileName + "'";
+	header+="ipSender='" + ipSender + "'";
+	header+="portSender='" + ToString(portSender) + "'";	
+	header+= "]";
+
+	return header;
+}
 
 int TextTalker::id() { return myCount; }
 
 int TextTalker::count = 0;
 
 
-TextTalker::TextTalker() {}
-
+//----< Binary-plus-text-based message sender constructor >------------------------------
 
 BinTalker::BinTalker(Packetizer& p) : _p(p) {}
 
-
-
-
 void BinTalker::start(std::string ip, int port)
 {
-	sout << locker << "\n Sender #" << id() << " started" << unlocker;
+	sout << locker << " BinTalker sending: " << _p.getFileName() << " started" << unlocker << "\n";
 	pSender = new SenderThread(_q, _s);
 	pSender->start();
 
@@ -161,12 +190,7 @@ void BinTalker::start(std::string ip, int port)
 	delete pSender;
 }
 
-std::string BinTalker::makeSendBinAckMessage(std::string filename, std::string ipSender)
-{
-	std::string header;
-	return header;
-}
-
+//-----------< Takes a binary packet and prepends a text-based header >--------------------------
 
 std::string BinTalker::appendHeaderToBinaryPacket(std::string destIp, int destPort, int packetIndex)
 {
@@ -199,14 +223,12 @@ private:
 	BinTalker sndr_;
 };
 
-
 void main()
 {
 
 	int ret = 0;
 	try
 	{
-
 		Packetizer p("C:\\School\\CSE-687\\Project3\\Submission\\Test\\flyby_plusShaped.scn");
 		Packetizer p2("C:\\School\\CSE-687\\Project3\\Submission\\Test\\flyby_plusShaped2.scn");
 
@@ -231,7 +253,6 @@ void main()
 		sout << "\n\n  something bad happend to a sender";
 		ret = 1;
 	}
-
 
 }
 

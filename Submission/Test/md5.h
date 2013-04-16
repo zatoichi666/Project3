@@ -36,6 +36,7 @@ documentation and/or software.
 #include <string>
 #include <iostream>
 
+#pragma warning(disable: 4996) // For sprintf usage, not actually deprecated
 
 // a small class for calculating MD5 hashes of strings or byte arrays
 // it is not meant to be fast or secure

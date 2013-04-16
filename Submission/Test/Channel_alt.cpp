@@ -4,7 +4,6 @@
 #include "Sender.h"
 #include "Listener.h"
 
-
 #include <iostream>
 #include <thread>
 
@@ -55,11 +54,16 @@ int main()
 	ChannelAlt c4(r4, t4);
 
 	std::thread thr2([&]() {c2.receiveFile(listenPort);});
-	//c.receiveFile(8050);
-
-	std::thread thr4([&]() {c4.sendFile(sendIp, sendPort);});
+	std::thread thr4([&]() 
+	{
+		c4.sendFile(sendIp, sendPort);
+		TextTalker ta4;
+		ta4.start(queryMd5, sendIp, sendPort, "flyby_plusShaped4.scn",listenIp, listenPort );
+	});
 
 	c2.sendFile(sendIp, sendPort);
+	TextTalker ta2;
+	ta2.start(queryMd5, sendIp, sendPort, "flyby_plusShaped2.scn",listenIp, listenPort );
 
 	thr2.join();
 	thr4.join();

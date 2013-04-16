@@ -70,6 +70,7 @@
     <ClCompile Include="..\filefind.cpp" />
     <ClCompile Include="..\FileSystem.cpp" />
     <ClCompile Include="..\Locks.cpp" />
+    <ClCompile Include="..\md5.cpp" />
     <ClCompile Include="..\Packetizer.cpp" />
     <ClCompile Include="..\Sender.cpp" />
     <ClCompile Include="..\Sockets.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="..\filefind.h" />
     <ClInclude Include="..\FileSystem.h" />
     <ClInclude Include="..\Locks.h" />
+    <ClInclude Include="..\md5.h" />
     <ClInclude Include="..\Packetizer.h" />
     <ClInclude Include="..\Sender.h" />
     <ClInclude Include="..\Sockets.h" />

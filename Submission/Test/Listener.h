@@ -1,3 +1,24 @@
+/////////////////////////////////////////////////////////////////////////////
+// Listener.h   - Demonstrates receive-side socket comms per specification //
+//               for project 3, CSE-687, Spring 2013                       //
+// ----------------------------------------------------------------------- //
+// Language:    Visual C++, Visual Studio 2012                             //
+// Platform:    Dell Dimension E6510, Windows 7                            //
+// Application: CSE-687                                                    //
+// Author:      Matt Synborski                                             //
+//              matthewsynborski@gmail.com                                 //
+/////////////////////////////////////////////////////////////////////////////
+// Package details:                                                        //
+// Receivers aggregate ListenThreads, which wait for incoming connections  //
+// When a ListenThread gets a connection, it aggregates a ClientHandler    //
+// Thread, which pulls messages out of the Socket and stuffs them into     // 
+// A BlockingQueue.  The Receiver retrieves the messages from the Blocking //
+// Queue, and handles their contents.  The Receiver to ListenThread        //
+// relationship is 1:1, while the ListenThread to ClientHandlerThread      //
+// relationship is 1:*, this way, a single Listener is designed to handle  //
+// concurrent socket communication with Senders from multiple connections. //
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef LISTENER_H
 #define LISTENER_H
 
@@ -64,6 +85,8 @@ private:
 	BlockingQueue<std::string> q_;
 	ListenThread* pLt;
 	void processMessage(std::string message);
+	void Receiver::sendAckBinMsg(std::string fileName, int port, std::string ip );
+	void Receiver::processAckBinMsg(std::string message );
 	void Receiver::processQueryMd5Msg(std::string message );
 	void Receiver::processAckMd5Msg(std::string message );
 	FileSystem::FileInfo Receiver::processSendBinMsg(std::string message, int& isLastPacket);

@@ -70,6 +70,8 @@
     <ClCompile Include="..\Listener.cpp" />
     <ClCompile Include="..\Locks.cpp" />
     <ClCompile Include="..\md5.cpp" />
+    <ClCompile Include="..\Packetizer.cpp" />
+    <ClCompile Include="..\Sender.cpp" />
     <ClCompile Include="..\Sockets.cpp" />
     <ClCompile Include="..\Threads.cpp" />
   </ItemGroup>
@@ -79,6 +81,8 @@
     <ClInclude Include="..\Listener.h" />
     <ClInclude Include="..\Locks.h" />
     <ClInclude Include="..\md5.h" />
+    <ClInclude Include="..\Packetizer.h" />
+    <ClInclude Include="..\Sender.h" />
     <ClInclude Include="..\Sockets.h" />
     <ClInclude Include="..\Threads.h" />
   </ItemGroup>

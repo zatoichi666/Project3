@@ -10,8 +10,9 @@ Usage:
 	b. 	Run the run.bat script in the test folder.
 
 2. 	To verify the display package, 
-	a. 	Run the compile.bat script in the test folder.
-	b. 	Run the run.bat script in the test folder.
+	a. 	Run the compile.bat script in the display folder.
+	b. 	Run the run.bat script in the display folder.
 
 See Requirements Trace Matrix for verification guidance:
+
 

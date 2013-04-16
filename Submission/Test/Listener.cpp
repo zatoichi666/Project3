@@ -1,7 +1,18 @@
+/////////////////////////////////////////////////////////////////////////////
+// Listener.cpp - Demonstrates receive-side socket comms per specification //
+//               for project 3, CSE-687, Spring 2013                       //
+// ----------------------------------------------------------------------- //
+// Language:    Visual C++, Visual Studio 2012                             //
+// Platform:    Dell Dimension E6510, Windows 7                            //
+// Application: CSE-687                                                    //
+// Author:      Matt Synborski                                             //
+//              matthewsynborski@gmail.com                                 //
+/////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <ostream>
 #include <sstream>
 #include <ctime>
+#include <thread>
 
 #include "Listener.h"
 #include "FileSystem.h"
@@ -24,7 +35,7 @@ void ClientHandlerThread::run()
 		q_.enQ(msg);
 	} while(msg != "quit");
 
-	sout << "ClientThread: Got stop!\n";
+	
 }
 
 void ListenThread::run()
@@ -39,7 +50,7 @@ void ListenThread::run()
 
 void Receiver::start(int port)
 {
-	sout << "Receiver started on port " << port << "\n";
+	sout << " Receiver: started on port " << port << "\n";
 	pLt = new ListenThread(port, q_);
 	try
 	{
@@ -54,10 +65,12 @@ void Receiver::start(int port)
 	}
 	catch(std::exception& ex)
 	{
+		std::cout << "\n\n  " << ex.what();
 		delete pLt;
 	}
 	catch(...)
 	{
+		sout << "\n  something bad happened";
 		delete pLt;
 	}
 }
@@ -82,7 +95,7 @@ void Receiver::processMessage(std::string message)
 		int isLastPacket = 0;
 		FileSystem::FileInfo fi = processSendBinMsg(message, isLastPacket);
 		if (isLastPacket)
-			sout << "Got the last packet of " << fi.name() << "\n";
+			sout << " Receiver: Got the last packet of " << fi.name() << "\n";
 	}
 	if (messageType == "queryMd5")
 	{
@@ -94,12 +107,34 @@ void Receiver::processMessage(std::string message)
 		int isLastPacket = 0;
 		processAckMd5Msg( message );
 	}
+	if (messageType == "ackBin")
+	{
+		int isLastPacket = 0;
+		processAckBinMsg( message );
+	}
 
 }
 
 void Receiver::processAckMd5Msg(std::string message )
 {	
-	sout << "Got a MD5 ack message, transfer was successful\n";
+	/* ------------------------< Unpack the ackMd5 message >---------------------------------- */
+
+	size_t posdIpHeader = message.find("ipSender='") + 10;
+	size_t dIpEntryLength = message.find("'",posdIpHeader) - posdIpHeader;
+	std::string dIp = message.substr(posdIpHeader,dIpEntryLength);
+
+	size_t posdPortHeader = message.find("portSender='") + 12;
+	size_t dPortEntryLength = message.find("'",posdPortHeader) - posdPortHeader;
+	std::string dPort_s = message.substr(posdPortHeader,dPortEntryLength);
+
+	int dPort;
+	if ( ! (std::istringstream(dPort_s) >> dPort) ) dPort = 0;
+
+	size_t posMd5Header = message.find("md5val='") + 8;
+	size_t md5EntryLength = message.find("'",posMd5Header) - posMd5Header;
+	std::string md5_s = message.substr(posMd5Header,md5EntryLength);
+
+	sout << " ackMD5: " << md5_s << " from IP: " << dIp << " port: " << dPort << "\n";
 }
 
 void Receiver::processQueryMd5Msg(std::string message )
@@ -118,7 +153,7 @@ void Receiver::processQueryMd5Msg(std::string message )
 	int dPort;
 	if ( ! (std::istringstream(dPort_s) >> dPort) ) dPort = 0;
 
-	sout << "Got a query MD5 message for: " << fileName << " from IP: " << dIp << " port: " << dPort << "\n";
+	sout << " queryMD5: " << fileName << " from IP: " << dIp << " port: " << dPort << "\n";
 
 	FileSystem::FileInfo fi(fileName);	
 	FileSystem::File inFile(fileName);
@@ -140,23 +175,57 @@ void Receiver::processQueryMd5Msg(std::string message )
 			fileContents += packet;
 		}
 		std::string fileMd5Value;
-		sout << "Calculating md5 a bunch of times\n";
+		sout << " queryMD5: Calculating md5 1000000 times\n";
 
-		std::clock_t start;
-		double duration;
-		start = std::clock();
-
-		for (int i=0;i<1000000;i++)
-		{			
-			fileMd5Value = md5(fileContents.c_str());			
-		}
-		duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-		sout << "Calculated md5: " << fileMd5Value << " in " << duration << " seconds.\n";
-		TextTalker ta;
-		ta.start(ackMd5, dIp, dPort, fileMd5Value, dIp, dPort );
+		std::thread thr([&]() 
+		{
+			std::clock_t start;
+			double duration;
+			start = std::clock();
+			for (int i=0;i<1000000;i++)		
+				fileMd5Value = md5(fileContents.c_str());			
+			duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+			sout << " queryMD5: Calculated md5: " << fileMd5Value << " in " << duration << " seconds.\n";
+			TextTalker ta;
+			ta.start(ackMd5, dIp, dPort, fileMd5Value, dIp, dPort );
+		});
+		thr.join();
 }
 
+void Receiver::processAckBinMsg(std::string message )
+{	
+	/* ------------------------< Unpack the ackBin message >---------------------------------- */
+
+	size_t posFileHeader = message.find("file='") + 6;
+	size_t fileEntryLength = message.find("'",posFileHeader) - posFileHeader;
+	std::string fileName = message.substr(posFileHeader,fileEntryLength);
+
+	size_t posdIpHeader = message.find("ipSender='") + 10;
+	size_t dIpEntryLength = message.find("'",posdIpHeader) - posdIpHeader;
+	std::string dIp = message.substr(posdIpHeader,dIpEntryLength);
+
+	size_t posdPortHeader = message.find("portSender='") + 12;
+	size_t dPortEntryLength = message.find("'",posdPortHeader) - posdPortHeader;
+	std::string dPort_s = message.substr(posdPortHeader,dPortEntryLength);
+
+	int dPort;
+	if ( ! (std::istringstream(dPort_s) >> dPort) ) dPort = 0;
+	
+	sout << " ackBin: " << fileName << " from IP: " << dIp << " port: " << dPort << "\n";
+}
+
+
+//-------< Once the last SendBin message has been received, send an acknowledgement >-------------------
+
+void Receiver::sendAckBinMsg(std::string fileName, int port, std::string ip )
+{	
+	std::thread thr([&]() 
+		{
+			TextTalker ta;
+			ta.start(ackBin, ip, port, fileName, ip, port );
+		});
+		thr.join();
+}
 
 //----< process the SendBin Message >--------------------------------------
 
@@ -200,6 +269,7 @@ FileSystem::FileInfo Receiver::processSendBinMsg(std::string message, int& isLas
 	{
 		isLastPacket = 1;
 		outFile.close();
+		sendAckBinMsg(fileName, dPort, dIp);
 	}
 	else
 		isLastPacket = 0;
@@ -219,6 +289,7 @@ void main()
 	int ret = 0;
 	try
 	{
+		sout << "Waiting for Sender to send 2 .scn files (Requires simultaneous testing with Sender.exe)\n";
 		Receiver rcvr;
 		rcvr.start(8080);
 	}

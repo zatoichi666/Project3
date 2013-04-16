@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Channel1", "Channel1\Channel1.vcxproj", "{E2FA61DA-BE1A-40E0-B488-0FA377EF480A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Channel2", "Channel2\Channel2.vcxproj", "{1CE9945C-6AD5-47F2-AB4E-5E8DDB49FA92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2FA61DA-BE1A-40E0-B488-0FA377EF480A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E2FA61DA-BE1A-40E0-B488-0FA377EF480A}.Debug|Win32.Build.0 = Debug|Win32
+		{E2FA61DA-BE1A-40E0-B488-0FA377EF480A}.Release|Win32.ActiveCfg = Release|Win32
+		{E2FA61DA-BE1A-40E0-B488-0FA377EF480A}.Release|Win32.Build.0 = Release|Win32
+		{1CE9945C-6AD5-47F2-AB4E-5E8DDB49FA92}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1CE9945C-6AD5-47F2-AB4E-5E8DDB49FA92}.Debug|Win32.Build.0 = Debug|Win32
+		{1CE9945C-6AD5-47F2-AB4E-5E8DDB49FA92}.Release|Win32.ActiveCfg = Release|Win32
+		{1CE9945C-6AD5-47F2-AB4E-5E8DDB49FA92}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
